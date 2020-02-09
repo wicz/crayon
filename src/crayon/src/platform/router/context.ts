@@ -36,6 +36,9 @@ export class Context {
     public mount(..._args: any): void | Promise<void> {
     }
 
+    public push(..._args: any): void | Promise<void> {
+    }
+
     public redirect(path: string): void | Promise<void> {
     }
 }

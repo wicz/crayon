@@ -13,6 +13,7 @@ export class Router {
   private $history: eventStream.Subscription
   private $reqs: eventStream.Subscription[] = []
   public loads = 0
+  private pushStack: any[] = []
   
   constructor(
     public id: string,
@@ -44,6 +45,14 @@ export class Router {
     } else {
       this.routeMap.addMiddleware(target)
     }
+  }
+
+  public async push(target: any) {
+    this.pushStack.push(target)
+    const ctx = new Context()
+    const pushHandler: handlerFunc = ctx => ctx.push(target)
+    const handlers = [ pushHandler ]
+    await this.runHandlers(handlers, ctx)
   }
 
   public async navigate(path: string): Promise<void> {
@@ -123,10 +132,12 @@ export class Router {
     this.isLoading = true
     const location = this.location.getLocation()
     const ctx = new Context()
+
     ctx.redirect = (path: string) => {
       ctx.hasCompleted = true
       this.onRedirect(path)
     }
+    
     const result = this.routeMap.findWithPathname(location.pathname)
     if (!result) {
       this.emitEvent(RouterEventType.NoHandlers)
@@ -134,6 +145,7 @@ export class Router {
       this.isLoading = false
       return
     }
+
     const { handlers, pattern, params } = result 
     this.location.mergeContext(ctx, pattern, params)
 
@@ -148,8 +160,9 @@ export class Router {
         return
       }
     }
-    // Watch for update and mutate the request untill you navigate
-    // elsewhere. This adds a new subscirption and removes the previous
+
+    // Watch for updates and mutate the request until you navigate
+    // elsewhere. This adds a new subscription and removes the previous
     this.$reqs.push(this.onRequestUpdate(ctx, pattern))
 
     // Run handlers and middleware. They will skip
