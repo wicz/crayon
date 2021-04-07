@@ -1,0 +1,36 @@
+import { eventStream } from 'crayon-kit';
+import { History } from '../history';
+import { RouteMap } from '../route-map';
+import { Locator } from '../locator';
+import { handlerFunc, RouterEvent } from './types';
+import { Request } from './request';
+import { Response } from './response';
+import { Group } from "./group";
+export declare class Router {
+    id: string;
+    locator: Locator;
+    routeMap: RouteMap;
+    history: History;
+    events: eventStream.Beacon<RouterEvent>;
+    currentRes: Response | undefined;
+    currentReq: Request | undefined;
+    private isLoading;
+    private state;
+    private $history;
+    private $reqs;
+    loads: number;
+    constructor(id: string, locator: Locator, routeMap: RouteMap, history: History, events: eventStream.Beacon<RouterEvent>);
+    destroy(): void;
+    path(path: string, ...handlers: handlerFunc[]): void;
+    use(target: handlerFunc | Group): void;
+    navigate(path: string): Promise<void>;
+    back(): Promise<void>;
+    load(): Promise<void>;
+    private onHistoryEvent;
+    private useGroup;
+    private emitEvent;
+    private runHandlers;
+    private onRedirect;
+    private digest;
+    private onRequestUpdate;
+}
